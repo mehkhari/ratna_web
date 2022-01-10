@@ -1,7 +1,8 @@
 import 'dart:developer';
-
+import 'package:http/http.dart'as http;
 import 'package:flutter/material.dart';
 import 'package:practice_web/helpers/cartwidget.dart';
+import 'package:practice_web/models/sequenceResponseList.dart';
 import 'package:video_player/video_player.dart';
 
 void main() => runApp(MyApp());
@@ -28,6 +29,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // VideoPlayerController? _controller;
+  List<SequenceResponseList> sequenceResponseList=[];
   List<CartItem> cart = [];
   void refresh() {
     setState(() {});
@@ -69,10 +71,19 @@ class _MyHomePageState extends State<MyHomePage> {
         // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
         setState(() {});
       });*/
+    getSequencesList();
+  }
+  getSequencesList()async{
+    var response=await http.get(Uri.parse("https://rathna3121.pythonanywhere.com/seq_list/"),headers: {
+      "Access-Control-Allow-Origin": "*", // Required for CORS support to work
+    },);
+    debugPrint("Sequences Response--->${response.body}");
+    setState(() {
+      sequenceResponseList=sequenceResponseListFromJson(response.body);
+    });
   }
   callagain(){
     setState(() {
-
     });
   }
   VoidCallback _listenerSpawner(index) {
@@ -283,7 +294,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       backgroundColor: Colors.white,
                                       child: Icon(Icons.play_arrow)),
                                 ),
-                                SizedBox(width: 10,),
+                                const SizedBox(width: 10,),
                                 InkWell(
                                   onTap: ()=> _controller(index).pause(),
                                   child:const CircleAvatar(
@@ -297,15 +308,15 @@ class _MyHomePageState extends State<MyHomePage> {
                         ],
                       )
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 28.0),
-                      child: Text("All Sequences (12)",style: TextStyle(fontSize: 21,color: Colors.white),),
+                     Padding(
+                      padding: EdgeInsets.only(left: 28.0),
+                      child: Text("All Sequences ${sequenceResponseList==null?0:sequenceResponseList.length}",style: TextStyle(fontSize: 21,color: Colors.white),),
                     ),
                     Container(
                       height: 200,
                       margin: EdgeInsets.only(top: 10),
                       child: ListView.builder(
-                          itemCount: 12,
+                          itemCount: sequenceResponseList==null?0:sequenceResponseList.length,
                           itemBuilder: (context,index){
                         return Container(
                           margin: EdgeInsets.all(4),
@@ -317,8 +328,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             leading: const CircleAvatar(
                               radius: 25,
                             ),
-                            title: Text("Sequence Title ${index+1}",style: TextStyle(color: Colors.white,fontSize: 18),),
-                            subtitle: Text("sequence Flow",style: TextStyle(color: Colors.white,fontSize: 14),),
+                            title: Text(sequenceResponseList[index].seqtitle.toString(),style: TextStyle(color: Colors.white,fontSize: 18),),
+                            subtitle: Text("${sequenceResponseList[index].sequence}",style: TextStyle(color: Colors.white,fontSize: 14),),
                           ),
                         );
                       }),
